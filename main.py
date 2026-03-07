@@ -1,7 +1,8 @@
 from fastapi import FastAPI, UploadFile, File
 import os
 from openai import OpenAI
-
+import base64
+from io import BytesIO
 app = FastAPI()
 
 client = OpenAI()
