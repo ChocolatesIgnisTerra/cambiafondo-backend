@@ -1,29 +1,57 @@
 from fastapi import FastAPI, UploadFile, File
 import os
 from openai import OpenAI
+
 app = FastAPI()
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 @app.get("/")
 def home():
     return {"status": "backend activo"}
 
 @app.post("/run_campaign_creatives")
 async def run_campaign_creatives(image: UploadFile = File(...)):
-    
-    prompts = [
-        "Fondo beige premium minimalista",
-        "Fondo gris cálido elegante",
-        "Fondo piedra clara natural",
-        "Fondo madera clara suave",
-        "Fondo pastel suave publicitario",
-        "Fondo crema luminoso",
-        "Fondo degradado minimal",
-        "Fondo estudio claro",
-        "Fondo natural premium",
-        "Fondo neutro elegante"
-    ]
+
+    # Leemos la imagen (por ahora solo para recibirla correctamente)
+    image_bytes = await image.read()
+
+    prompt_system = """
+Eres un experto en marketing visual y publicidad digital.
+
+Analiza el producto de la imagen subida y genera 10 prompts de fondos publicitarios
+para usar en generación de imágenes de marketing.
+
+Los prompts deben ser cortos, claros y enfocados en fondos publicitarios como:
+
+- fondo premium minimalista
+- fondo piedra natural
+- fondo madera suave
+- fondo pastel publicitario
+- fondo estudio limpio
+- fondo elegante para ecommerce
+- fondo vertical para historia de Instagram
+- fondo para anuncio de Meta Ads
+- fondo natural premium
+- fondo neutro elegante
+
+Devuelve solo una lista de 10 prompts.
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": prompt_system},
+            {"role": "user", "content": "Genera 10 prompts de fondos publicitarios para este producto."}
+        ],
+        temperature=0.7
+    )
+
+    text = response.choices[0].message.content
+
+    prompts = [p.strip("- ").strip() for p in text.split("\n") if p.strip()]
 
     return {
-        "message": "10 prompts generados",
+        "message": "prompts generados por IA",
         "prompts": prompts
     }
