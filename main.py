@@ -52,7 +52,21 @@ Devuelve solo una lista de 10 prompts.
 
     prompts = [p.strip("- ").strip() for p in text.split("\n") if p.strip()]
 
-    return {
-        "message": "prompts generados por IA",
-        "prompts": prompts
-    }
+
+       
+# Generar una imagen de fondo usando el primer prompt
+image_prompt = prompts[0]
+
+image_response = client.images.generate(
+    model="gpt-image-1",
+    prompt=image_prompt,
+    size="1024x1024"
+)
+
+image_url = image_response.data[0].url
+
+return {
+    "message": "prompts e imagen generados",
+    "prompts": prompts,
+    "image": image_url
+}
