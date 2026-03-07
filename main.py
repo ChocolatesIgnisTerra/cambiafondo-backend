@@ -65,8 +65,8 @@ image_response = client.images.generate(
 
 image_url = image_response.data[0].url
 
-return {
-    "message": "prompts e imagen generados",
-    "prompts": prompts,
-    "image": image_url
-}
+        return {
+        "message": "prompts e imagen generados",
+        "prompts": prompts,
+        "image": image_url
+    }
