@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from openai import OpenAI
 import base64
+from PIL import Image
+import io
 
 app = FastAPI()
 
@@ -24,47 +26,25 @@ def home():
 async def run_campaign_creatives(image: UploadFile = File(...)):
     image_bytes = await image.read()
 
-    prompt_system = """
-Eres un experto en marketing visual y publicidad digital.
-Analiza el producto de la imagen subida y genera 10 prompts de fondos publicitarios
-para usar en generación de imágenes de marketing.
-Los prompts deben ser cortos, claros y enfocados en fondos publicitarios como:
-- fondo premium minimalista
-- fondo piedra natural
-- fondo madera suave
-- fondo pastel publicitario
-- fondo estudio limpio
-- fondo elegante para ecommerce
-- fondo vertical para historia de Instagram
-- fondo para anuncio de Meta Ads
-- fondo natural premium
-- fondo neutro elegante
-Devuelve solo una lista de 10 prompts.
-"""
+    image_base64_analysis = base64.b64encode(image_bytes).decode("utf-8")
+    mime_type = image.content_type or "image/jpeg"
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
+    analysis = client.chat.completions.create(
+        model="gpt-4o",
         messages=[
-            {"role": "system", "content": prompt_system},
-            {"role": "user", "content": "Genera 10 prompts de fondos publicitarios para este producto."}
-        ],
-        temperature=0.7
-    )
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{mime_type};base64,{image_base64_analysis}"}
+                    },
+                    {
+                        "type": "text",
+                        "text": """Eres un director creativo de publicidad gourmet de lujo.
+Analiza este producto y responde en este formato exacto:
 
-    text = response.choices[0].message.content
-    prompts = [p.strip("- ").strip() for p in text.split("\n") if p.strip()]
-
-    image_prompt = prompts[0]
-    image_response = client.images.generate(
-        model="gpt-image-1",
-        prompt=image_prompt,
-        size="1024x1024"
-    )
-
-    image_base64 = image_response.data[0].b64_json
-
-    return {
-        "message": "prompts e imagen generados",
-        "prompts": prompts,
-        "image_base64": image_base64
-    }
+PRODUCTO: [describe brevemente el producto]
+OCASION: [detecta si el producto es alusivo a alguna ocasión especial: Pascua, Navidad, Día de la Madre, Día del Padre, Halloween, San Valentín, etc. Si no hay ocasión específica, escribe "everyday premium"]
+FONDOS:
+1
