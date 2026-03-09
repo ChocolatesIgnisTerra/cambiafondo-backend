@@ -51,10 +51,10 @@ Devuelve solo una lista de 10 prompts.
         prompt=image_prompt,
         size="1024x1024"
     )
-    image_url = image_response.data[0].url
+    image_base64 = image_response.data[0].b64_json
 
     return {
         "message": "prompts e imagen generados",
         "prompts": prompts,
-        "image": image_url
+        "image_base64": image_base64
     }
