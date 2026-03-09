@@ -1,10 +1,19 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from openai import OpenAI
 import base64
-from io import BytesIO
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 client = OpenAI()
 
 @app.get("/")
@@ -51,6 +60,7 @@ Devuelve solo una lista de 10 prompts.
         prompt=image_prompt,
         size="1024x1024"
     )
+
     image_base64 = image_response.data[0].b64_json
 
     return {
